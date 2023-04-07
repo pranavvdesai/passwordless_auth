@@ -9,8 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-        "firebase": "^8.6.2",
-
+    "@arcana/auth": "^1.0.3",
+    "@arcana/auth-react": "^0.0.3",
+    "firebase": "^8.6.2",
     "next": "13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0"
