@@ -5,7 +5,7 @@ import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useAuth } from "@arcana/auth-react";
 import { rpcURLnetwork, authArcana } from "../utils/authArcana";
-
+import axios from "axios";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [lat, setLat] = useState("");
   const [long, setLong] = useState("");
-  const [trueUser, setTrueUser] = useState(false);
+  const [trueUser, setTrueUser] = useState(true);
 
   const onConnectClick = async () => {
     try {
@@ -31,6 +31,9 @@ export default function Home() {
     const info = await authArcana.getUser();
     console.log(info);
     alert("You have successfully logged in " + info.email);
+    // push to /home
+    window.location.href = "/home";
+
   };
 
   const signInWithEmail = async (e) => {
@@ -59,9 +62,26 @@ export default function Home() {
       long,
       ip: ipapi.ip,
     };
+    // send a post request to https://nisproject.onrender.com/predict with time and ip in axios
+    const res = await axios.post("https://nisproject.onrender.com/predict",  {
+      login_time: time,
+      ip_addr: ipapi.ip,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
 
-    alert("You have successfully logged in " + email + password + time);
-    setTrueUser(true);
+    console.log(res.data);
+    if (res.data.status === "alert") {
+      alert("You have been flagged for suspicious activity");
+      setTrueUser(false);
+    } else {
+      alert("You have successfully logged in " + email + password + time);
+      setTrueUser(true);
+    }
+
+    
   };
 
   useEffect(() => {
@@ -82,13 +102,19 @@ export default function Home() {
       <div class="grid h-screen w-screen place-items-center bg-slate-800 px-4 text-sm font-medium">
         <div class="w-full max-w-sm rounded-lg bg-slate-700/30 shadow">
           <div class="p-4 md:p-5 lg:p-6">
-            {trueUser ? (
-              <div class="grid gap-y-3">
-                <button
-                  class="flex items-center justify-center gap-x-2 rounded-md border border-slate-600 bg-slate-700 py-3 px-4 text-slate-300 transition hover:text-purple-400"
-                  onClick={onConnectClick}
-                >
-                  {/* <svg
+            {!trueUser ? (
+              <>
+                <p className="pt-2 pb-4 text-red-600">
+                  {" "}
+                  Suspicious Activity Detected
+                </p>
+                <p className="pb-5"> Two Factor Authentication Required</p>
+                <div class="grid gap-y-3">
+                  <button
+                    class="flex items-center justify-center gap-x-2 rounded-md border border-slate-600 bg-slate-700 py-3 px-4 text-slate-300 transition hover:text-purple-400"
+                    onClick={onConnectClick}
+                  >
+                    {/* <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
                   height="18"
@@ -101,7 +127,7 @@ export default function Home() {
                     fill="#cbd5e1"
                   ></path>
                 </svg> */}
-                  <svg
+                    {/* <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="18"
                     height="18"
@@ -113,10 +139,10 @@ export default function Home() {
                       d="M8 0a8 8 0 0 0-8 8c0 4.418 5.373 8 8 8 2.627 0 8-3.582 8-8a8 8 0 0 0-8-8zm3.5 11.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3zm-1.5-4.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm0 2a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1z"
                       fill="#cbd5e1"
                     ></path>
-                  </svg>
-                  Sign in with passwordless Auth
-                </button>
-                {/* <button class="flex items-center justify-center gap-x-2 rounded-md border border-slate-600 bg-slate-700 py-3 px-4 text-slate-300 transition hover:text-purple-400">
+                  </svg> */}
+                    Sign in with passwordless Auth
+                  </button>
+                  {/* <button class="flex items-center justify-center gap-x-2 rounded-md border border-slate-600 bg-slate-700 py-3 px-4 text-slate-300 transition hover:text-purple-400">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -132,7 +158,8 @@ export default function Home() {
                 </svg>
                 Sign in with Google
               </button> */}
-              </div>
+                </div>
+              </>
             ) : (
               <div class="grid gap-y-3">
                 <input
